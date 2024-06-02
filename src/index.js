@@ -26,7 +26,7 @@ app.use(express.json());
 app.get('/', (req, res) => { 
     return res.status(200).send({ message: "welcome api", status: true });
 })
- 
+
 app.use('/auth', authRouters);
 app.use('/api/users', userRouters)
 app.use('/api/products', productRouter)
