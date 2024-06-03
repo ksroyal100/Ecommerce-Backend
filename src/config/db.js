@@ -5,7 +5,7 @@ const DB_Name = "Ecommerce";
 
 const connectDB = async () => {
     try {
-        const connection = await mongoose.connect(connMDB);
+        const connection = await mongoose.connect(`${connMDB}/${DB_Name}`);
         console.log(`\n MongoDB connected !! DB HOST ` + DB_Name);
     }
         
