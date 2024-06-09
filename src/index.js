@@ -17,13 +17,14 @@ const adminOrderRouter = require('./routes/adminOrder.route')
  
 dotenv.config({
     path: "./env"
-}); 
+});  
  
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-    origin: 'https://ecommerce-backend-th3l.onrender.com', // Adjust this to match your client’s domain
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    origin: 'https://ecommerce-frontend-dusky-alpha.vercel.app', // Adjust this to match your client’s domain
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
 }));
 app.use(express.json());
 
