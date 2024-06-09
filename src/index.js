@@ -20,7 +20,11 @@ dotenv.config({
 }); 
  
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({
+    origin: 'https://ecommerce-backend-th3l.onrender.com', // Adjust this to match your client’s domain
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 app.get('/', (req, res) => { 
