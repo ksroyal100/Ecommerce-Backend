@@ -10,10 +10,11 @@ const adminproductRouter = require('./routes/adminproduct.route')
 const cartRouter = require('./routes/cart.route')
 const cartItemRouter = require('./routes/cartItem.route')
 const orderRouter = require('./routes/order.route')
+const paymentRouter=require("./routes/payment.route");
 const reviewRouter = require('./routes/review.route')
 const ratingRouter = require('./routes/rating.route')
 const adminOrderRouter = require('./routes/adminOrder.route')
-
+ 
  
 dotenv.config({
     path: "./env"
@@ -21,7 +22,7 @@ dotenv.config({
  
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-    origin: 'https://ecommerce-frontend-dusky-alpha.vercel.app', // Adjust this to match your client’s domain
+    // origin: 'https://ecommerce-frontend-dusky-alpha.vercel.app', // Adjust this to match your client’s domain
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -42,6 +43,8 @@ app.use('/api/orders', orderRouter)
 app.use('/api/reviews', reviewRouter)
 app.use('/api/ratings', ratingRouter) 
 app.use('/api/admin/orders', adminOrderRouter)
+app.use('/api/payments',paymentRouter)
+
 
 
 module.exports = app;

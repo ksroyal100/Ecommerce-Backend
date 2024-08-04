@@ -7,12 +7,10 @@ async function createOrder(user, shipAddress) {
   let address;
 
   if (shipAddress._id) {
-    let existAddress = await Address.findById(shipAddress._id);
-    address = existAddress;
+    address = await Address.findById(shipAddress._id);
   } else {
-     address = new Address(shipAddress);
-
-    address.user = user;
+    address = new Address(shipAddress);
+    address.user = user._id; // Ensure user is saved as an ObjectId
 
     try {
       await address.save();
@@ -21,50 +19,60 @@ async function createOrder(user, shipAddress) {
         user.addresses = [];
       }
 
-      user.addresses.push(address);
-
+      user.addresses.push(address._id); // Save address as ObjectId reference
       await user.save();
 
-        console.log("Address and user saved successfully");
-        console.log(address)
+      console.log("Address and user saved successfully");
+      console.log(address);
     } catch (error) {
       console.error("Error saving address or user:", error);
+      throw error; // Ensure error propagation
     }
-  }
+  } 
 
   const cart = await cartService.findUserCart(user._id);
   const orderItems = [];
 
   for (const item of cart.cartItems) {
     const orderItem = new OrderItem({
+      product: item.product._id, // Ensure this is an ObjectId
       price: item.price,
-      product: item.product,
       quantity: item.quantity,
       size: item.size,
       userId: item.userId,
       discountedPrice: item.discountedPrice,
     });
 
-    const createdOrderItem = await orderItem.save();
-    orderItems.push(createdOrderItem);
+    try {
+      const createdOrderItem = await orderItem.save();
+      orderItems.push(createdOrderItem._id); // Save ObjectId reference
+    } catch (error) {
+      console.error("Error saving order item:", error);
+      throw error; // Ensure error propagation
+    }
   }
 
   const createdOrder = new Order({
-    user,
+    user: user._id, // Ensure this is an ObjectId
     orderItems,
     totalPrice: cart.totalPrice,
     totalDiscountedPrice: cart.totalDiscountedPrice,
     discount: cart.discounts,
-    totalItem: cart.totalItems,
-    shipAddress: address,
+    totalItem: cart.totalItems, // Ensure this is a number
+    shippingAddress: address, // Ensure this is an ObjectId
     orderDate: new Date(),
     orderStatus: "PENDING",
   });
 
-  const savedOrder = await createdOrder.save();
-
-  return savedOrder;
+  try {
+    const savedOrder = await createdOrder.save();
+    return savedOrder;
+  } catch (error) {
+    console.error("Error saving order:", error);
+    throw error; // Ensure error propagation
+  }
 }
+
 
 async function placeOrder(orderId) {
   const order = await findOrderById(orderId);
