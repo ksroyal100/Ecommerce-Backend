@@ -1,4 +1,5 @@
 const userService = require('./user.service');
+const CartItem = require('../models/cartitem.model');
 
 async function updateCartItem(userId, cartItemId, cartItemData) {
     try {
@@ -11,7 +12,7 @@ async function updateCartItem(userId, cartItemId, cartItemData) {
         if (!user) {
             throw new Error("User not found", userId)
         }
-        if(user._id.toString()===userId.toString()){
+        if(user._id===userId.toString()){
             item.quantity = cartItemData.quantity;
             item.price = item.quantity * item.product.price;
             item.discountedPrice = item.quantity * item.product.discountedPrice;
@@ -37,7 +38,7 @@ async function removeCartItem(userId, cartItemId) {
 }
 
 async function findCartItemById(cartItemId) {
-    const cartItem = await findCartItemById(cartItemId);
+    const cartItem = await CartItem.findById(cartItemId).populate("product");
     if (cartItem) {
         return cartItem
     }
