@@ -1,7 +1,6 @@
 const { mongoose } = require('mongoose');
 
 const connMDB = process.env.monngoUrl
-// const connMDB = "mongodb+srv://guptakishan492:ksroyal6393@cluster0.wyd884s.mongodb.net"
 const DB_Name = "Ecommerce";
 
 const connectDB = async () => {
