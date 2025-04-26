@@ -70,60 +70,78 @@ async function findProductById(id) {
     return product;
 }
 
-async function getAllProducts(reqQuery) {
-    let { category, color, sizes, minPrice, maxPrice, minDiscount, sort, stock, pageNumber, pageSize } = reqQuery
-    pageSize = pageSize || 10
-    
-    let query = Product.find().populate("category")
+async function getAllProducts(reqQuery) { 
+    let { category, color, sizes, minPrice, maxPrice, minDiscount, sort, stock, pageNumber = 1, pageSize = 10 } = reqQuery;
+
+    minPrice = parseInt(minPrice) || 0;
+    maxPrice = parseInt(maxPrice) || 1000000;
+    minDiscount = parseInt(minDiscount) || 0;
+    pageNumber = parseInt(pageNumber);
+    pageSize = parseInt(pageSize);
+
+    let query = Product.find().populate("category");
 
     if (category) {
-        const existCategory = await Category.findOne({ name: category })
+        const existCategory = await Category.findOne({ name: category });
         if (existCategory) {
-            query = query.where("category").equals(existCategory._id)
-        }
-        else {
-            return {content:[], currentPage:1, totalPages:0}
+            query = query.where("category").equals(existCategory._id);
+        } else {
+            return { content: [], currentPage: 1, totalPages: 0 };
         }
     }
+
     if (color) {
-        const colorSet = new Set(color.split(",").map(color => color.trim().toLowerCase()))
-
-        const colorRegex = colorSet.size > 0 ? new RegExp([...colorSet].join("|"), "i") : null
-        
-        query = query.where("color").regex(colorRegex)
-    }
-    if (sizes) {
-        const sizesSet = new Set(sizes)
-        query.query.where("sizes.name").in([...sizesSet])
-    }
-    if (minPrice && maxPrice) {
-        query =await query.where('discountedPrice').gte(minPrice).lte(maxPrice) 
-    }
-    if (minDiscount) {
-        query =await query.where("discountPersent").gt(minDiscount)
-    }
-    if (stock) {
-        if (stock == "in_stock") {
-            query = query.where('quantity').gt(0)
+        const colorSet = new Set(color.split(",").map(c => c.trim().toLowerCase()));
+        if (colorSet.size > 0) {
+            const colorRegex = new RegExp([...colorSet].join("|"), "i");
+            query = query.where("color").regex(colorRegex);
         }
-        if (stock == "out_of_stock") {
-            query = query.where("quantity").gt(1)
-        } 
     }
 
+    if (sizes) {
+        const sizesSet = Array.isArray(sizes) ? sizes : [sizes];
+        query = query.where("sizes.name").in(sizesSet);
+    }
+
+    // Always apply price filter (even if 0 or large)
+    query = query.where('discountedPrice').gte(minPrice).lte(maxPrice);
+
+    if (minDiscount > 0) {
+        query = query.where("discountPersent").gte(minDiscount);
+    }
+
+    if (stock) {
+        if (stock === "in_stock") {
+            query = query.where('quantity').gt(0);
+        }
+        if (stock === "out_of_stock") {
+            query = query.where("quantity").lte(0);
+        }
+    }
+
+    // Sorting
     if (sort) {
-        const sortDirection = sort === "price_height" ? -1 : 1
-        query = query.sort({discountedPrice:sortDirection})
+        const sortDirection = sort === "price_high" ? -1 : 1; // fix typo: it was "price_height" in your code
+        query = query.sort({ discountedPrice: sortDirection });
     }
-    const totalProducts = await Product.countDocuments(query)
 
-    const skip = (pageNumber - 1) * pageSize
-    query = query.skip(skip).limit(pageSize)
-    const products = await query.exec()
-    const totalPages = Math.ceil(totalProducts / pageSize)
-    
-    return {content:products, currentPage:pageNumber,totalPages,}
+    // Total count
+    const totalProducts = await Product.countDocuments(query.getQuery());
+
+    // Pagination
+    const skip = (pageNumber - 1) * pageSize;
+    query = query.skip(skip).limit(pageSize);
+
+    const products = await query.exec();
+    const totalPages = Math.ceil(totalProducts / pageSize);
+
+    return {
+        content: products,
+        currentPage: pageNumber,
+        totalPages,
+    };
 }
+
 
 async function createMultipleProduct(products) {
     for (let product of products) {
