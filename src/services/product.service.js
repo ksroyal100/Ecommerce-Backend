@@ -70,68 +70,85 @@ async function findProductById(id) {
     return product;
 }
 
-async function getAllProducts(reqQuery) { 
-    let { category, color, sizes, minPrice, maxPrice, minDiscount, sort, stock, pageNumber = 1, pageSize = 10 } = reqQuery;
+async function getAllProducts(reqQuery) {
+    let {
+        category,
+        color,
+        sizes,
+        minPrice = 0,
+        maxPrice = 1000000,
+        minDiscount = 0,
+        sort,
+        stock,
+        pageNumber = 1,
+        pageSize = 10,
+    } = reqQuery;
 
-    minPrice = parseInt(minPrice) || 0;
-    maxPrice = parseInt(maxPrice) || 1000000;
-    minDiscount = parseInt(minDiscount) || 0;
+    // Convert to proper types
+    minPrice = parseInt(minPrice);
+    maxPrice = parseInt(maxPrice);
+    minDiscount = parseInt(minDiscount);
     pageNumber = parseInt(pageNumber);
     pageSize = parseInt(pageSize);
 
-    let query = Product.find().populate("category");
+    // Base query
+    let queryConditions = {};
 
+    // Category filter
     if (category) {
-        const existCategory = await Category.findOne({ name: category });
-        if (existCategory) {
-            query = query.where("category").equals(existCategory._id);
+        const existingCategory = await Category.findOne({ name: category });
+        if (existingCategory) {
+            queryConditions.category = existingCategory._id;
         } else {
             return { content: [], currentPage: 1, totalPages: 0 };
         }
     }
 
+    // Color filter
     if (color) {
-        const colorSet = new Set(color.split(",").map(c => c.trim().toLowerCase()));
-        if (colorSet.size > 0) {
-            const colorRegex = new RegExp([...colorSet].join("|"), "i");
-            query = query.where("color").regex(colorRegex);
-        }
+        const colorList = color.split(',').map(c => new RegExp(`^${c.trim()}$`, 'i'));
+        queryConditions.color = { $in: colorList };
     }
 
+    // Sizes filter
     if (sizes) {
-        const sizesSet = Array.isArray(sizes) ? sizes : [sizes];
-        query = query.where("sizes.name").in(sizesSet);
+        const sizeArray = Array.isArray(sizes) ? sizes : sizes.split(',');
+        queryConditions["sizes.name"] = { $in: sizeArray };
     }
 
-    // Always apply price filter (even if 0 or large)
-    query = query.where('discountedPrice').gte(minPrice).lte(maxPrice);
+    // Price filter
+    queryConditions.discountedPrice = { $gte: minPrice, $lte: maxPrice };
 
+    // Discount filter
     if (minDiscount > 0) {
-        query = query.where("discountPersent").gte(minDiscount);
+        queryConditions.discountPersent = { $gte: minDiscount };
     }
 
-    if (stock) {
-        if (stock === "in_stock") {
-            query = query.where('quantity').gt(0);
-        }
-        if (stock === "out_of_stock") {
-            query = query.where("quantity").lte(0);
-        }
+    // Stock filter
+    if (stock === "in_stock") {
+        queryConditions.quantity = { $gt: 0 };
+    } else if (stock === "out_of_stock") {
+        queryConditions.quantity = { $lte: 0 };
     }
+
+    // Create base query
+    let query = Product.find(queryConditions).populate("category");
 
     // Sorting
-    if (sort) {
-        const sortDirection = sort === "price_high" ? -1 : 1; // fix typo: it was "price_height" in your code
-        query = query.sort({ discountedPrice: sortDirection });
+    if (sort === "price_high") {
+        query = query.sort({ discountedPrice: -1 });
+    } else if (sort === "price_low") {
+        query = query.sort({ discountedPrice: 1 });
     }
 
-    // Total count
-    const totalProducts = await Product.countDocuments(query.getQuery());
+    // Total count before pagination
+    const totalProducts = await Product.countDocuments(queryConditions);
 
     // Pagination
     const skip = (pageNumber - 1) * pageSize;
     query = query.skip(skip).limit(pageSize);
 
+    // Execute query
     const products = await query.exec();
     const totalPages = Math.ceil(totalProducts / pageSize);
 
