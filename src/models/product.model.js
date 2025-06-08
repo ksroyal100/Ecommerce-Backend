@@ -3,31 +3,31 @@ const mongoose = require('mongoose');
 const productSchema = new mongoose.Schema({
     title: {
         type: String,
-        // required: true,
+        required: true,
     },
     description: {
         type: String,
-        // required: true,
+        required: true,
     },
     price: {
         type: Number,
-        // required: true,
+        required: true,
     },
     discountedPrice: {
         type: Number,
-        // required: true,
+        required: true,
     },
-    discountedPersent: {
+    discountPersent: {
         type: Number,
-        // required: true,
+        required: true,
     },
     quantity: {
         type: Number,
-        // required: true,
+        required: true,
     },
     brand: {
         type: String,
-        // required: true,
+        required: true,
 
     },
     color: {
