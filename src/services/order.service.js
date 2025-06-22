@@ -124,7 +124,7 @@ async function findOrderById(orderId) {
 
 async function usersOrderHistory(userId) {
   try {
-    const orders = await Order.find({ user: userId, orderStatus: "PLACED" })
+    const orders = await Order.find({ user: userId, orderStatus: "PENDING" })
       .populate({ path: "orderItems", populate: { path: "product" } })
       .lean();
     return orders;
@@ -133,11 +133,11 @@ async function usersOrderHistory(userId) {
   }
 }
 
-async function getAllOrders() {
-  return await Order.find()
-    .populate({ path: "orderItems", populate: { path: "product" } })
-    .lean();
-}
+// async function getAllOrders() {
+//   return await Order.find()
+//     .populate({ path: "orderItems", populate: { path: "product" } })
+//     .lean();
+// }
 
 async function deleteOrder(orderId) {
   const order = await findOrderById(orderId);
@@ -153,6 +153,6 @@ module.exports = {
   cancelOrder,
   findOrderById,
   usersOrderHistory,
-  getAllOrders,
+  // getAllOrders,
   deleteOrder,
 };
