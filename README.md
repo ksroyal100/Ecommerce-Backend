@@ -3,8 +3,6 @@
 A robust, scalable backend powering the modern e-commerce experience.  
 This project showcases strong backend development skills, production-ready architecture, and a focus on performance, security, and maintainability.
 
-[🌐 Live Demo API](https://ecommerce-backend-pied.vercel.app)
-
 ---
 
 ## 🏆 Highlights
