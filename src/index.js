@@ -11,8 +11,6 @@ const cartRouter = require('./routes/cart.route')
 const cartItemRouter = require('./routes/cartItem.route')
 const orderRouter = require('./routes/order.route')
 const paymentRouter=require("./routes/payment.route");
-const reviewRouter = require('./routes/review.route')
-const ratingRouter = require('./routes/rating.route')
 const adminOrderRouter = require('./routes/adminOrder.route')
  
  
@@ -39,8 +37,6 @@ app.use('/api/products', productRouter)
 app.use('/api/cart', cartRouter)
 app.use('/api/cart_items', cartItemRouter)
 app.use('/api/orders', orderRouter)
-app.use('/api/reviews', reviewRouter)
-app.use('/api/ratings', ratingRouter) 
 app.use('/api/admin/orders', adminOrderRouter)
 app.use('/api/payments',paymentRouter)
 
